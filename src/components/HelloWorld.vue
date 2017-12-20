@@ -20,12 +20,21 @@
       </el-option>
     </el-select>
     <i class="el-icon-loading" v-bind:class="{ hidden: !selectDisabled }"></i>
+    <el-button 
+      type="primary" 
+      plain
+      v-bind:class="{ hidden: !serialized }"
+      v-on:click="serialize">Download
+    </el-button>    
   </div>
-  <el-button 
-    type="primary" 
-    plain
-    v-bind:class="{ hidden: !enigma.selectedApp }"
-    v-on:click="serialize">Serialize</el-button>
+  <div>
+    <el-input
+      type="textarea"
+      :rows="10"
+      placeholder=""
+      v-model="serialized.loadScript">
+    </el-input>
+  </div>
 
   </div>
 </template>
@@ -65,7 +74,8 @@ export default {
         app: {},
         apps: {},
         selectedApp: ""
-      }
+      },
+      serialized: {}
     };
   },
   mounted: function() {
@@ -94,6 +104,8 @@ export default {
     selectApp: function(appId) {
       var _this = this;
       _this.selectDisabled = true;
+      _this.serialized = null;
+
       openSession(_this, sessionConfig, appId)
         .then(function(session) {
           return session.open();
@@ -106,25 +118,26 @@ export default {
         })
         .then(function(enigmaApp) {
           _this.enigma.app = enigmaApp;
-          _this.selectDisabled = false;
-          return _this.enigma.app.getAppProperties();
+          return app2json(_this.enigma.app);
         })
-        .then(function(props) {
-          console.log(props);
+        .then(function(serialized) {
+          _this.serialized = serialized;
+          _this.selectDisabled = false;
+        })
+        .catch(function() {
+          _this.selectDisabled = false;
         });
     },
     serialize: function() {
       var _this = this;
-      app2json(_this.enigma.app).then(function(serialized) {
-        var stamp = moment().format('YYYY-MM-DD_hh-mm-ss');
-        var fileName = `${_this.enigma.app.id}_${stamp}.json`
-        serialized = JSON.stringify(serialized, null, 4)
-        
-        var blob = new Blob([serialized], {
-          type: "application/json;charset=utf-8"
-        });
-        FileSaver.saveAs(blob, fileName);
+      var stamp = moment().format("YYYY-MM-DD_hh-mm-ss");
+      var fileName = `${_this.enigma.app.id}_${stamp}.json`;
+      var serialized = JSON.stringify(_this.serialized, null, 4);
+
+      var blob = new Blob([serialized], {
+        type: "application/json;charset=utf-8"
       });
+      FileSaver.saveAs(blob, fileName);
     }
   }
 };
