@@ -12,6 +12,8 @@
   "dependencies": {
     "element-ui": "^2.0.8",
     "enigma.js": "^2.2.0",
+    "filesaver.js": "^0.2.0",
+    "moment": "^2.20.1",
     "serializeapp": "^3.0.0",
     "vue": "^2.5.2",
     "vue-router": "^3.0.1",
